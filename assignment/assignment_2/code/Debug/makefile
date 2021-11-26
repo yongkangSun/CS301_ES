@@ -64,8 +64,8 @@ all: main-build
 main-build: code.elf secondary-outputs
 
 # Tool invocations
-code.elf: $(OBJS) $(USER_OBJS) E:\github_repository\CS301_ES\assignment\assignment_2\code\STM32F103RCTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "code.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"E:\github_repository\CS301_ES\assignment\assignment_2\code\STM32F103RCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="code.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+code.elf: $(OBJS) $(USER_OBJS) E:\GitHub\repositories\CS301_ES\assignment\assignment_2\code\STM32F103RCTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "code.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"E:\GitHub\repositories\CS301_ES\assignment\assignment_2\code\STM32F103RCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="code.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
