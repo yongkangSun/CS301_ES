@@ -41,9 +41,15 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+UART_HandleTypeDef huart1;
+
 osThreadId periodicHandle;
 osThreadId handleHandle;
+osThreadId ProducerHandle;
+osThreadId ConsumerHandle;
 osSemaphoreId bSem01Handle;
+osSemaphoreId cSemEmptyHandle;
+osSemaphoreId cSemFilledHandle;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -51,8 +57,11 @@ osSemaphoreId bSem01Handle;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_USART1_UART_Init(void);
 void PeriodicTask(void const * argument);
 void HandleTask(void const * argument);
+void FuncProducer(void const * argument);
+void FuncConsumer(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -91,6 +100,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -103,6 +113,14 @@ int main(void)
   /* definition and creation of bSem01 */
   osSemaphoreDef(bSem01);
   bSem01Handle = osSemaphoreCreate(osSemaphore(bSem01), 1);
+
+  /* definition and creation of cSemEmpty */
+  osSemaphoreDef(cSemEmpty);
+  cSemEmptyHandle = osSemaphoreCreate(osSemaphore(cSemEmpty), 4);
+
+  /* definition and creation of cSemFilled */
+  osSemaphoreDef(cSemFilled);
+  cSemFilledHandle = osSemaphoreCreate(osSemaphore(cSemFilled), 2);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -124,6 +142,14 @@ int main(void)
   /* definition and creation of handle */
   osThreadDef(handle, HandleTask, osPriorityIdle, 0, 128);
   handleHandle = osThreadCreate(osThread(handle), NULL);
+
+  /* definition and creation of Producer */
+  osThreadDef(Producer, FuncProducer, osPriorityNormal, 0, 128);
+  ProducerHandle = osThreadCreate(osThread(Producer), NULL);
+
+  /* definition and creation of Consumer */
+  osThreadDef(Consumer, FuncConsumer, osPriorityBelowNormal, 0, 128);
+  ConsumerHandle = osThreadCreate(osThread(Consumer), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -180,6 +206,39 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
+
 }
 
 /**
@@ -258,6 +317,52 @@ void HandleTask(void const * argument)
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
   }
   /* USER CODE END HandleTask */
+}
+
+/* USER CODE BEGIN Header_FuncProducer */
+/**
+* @brief Function implementing the Producer thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_FuncProducer */
+void FuncProducer(void const * argument)
+{
+  /* USER CODE BEGIN FuncProducer */
+  char msg[30];
+  /* Infinite loop */
+  for(;;)
+  {
+	  osSemaphoreWait(cSemEmptyHandle, osWaitForever);
+	  sprintf(msg, "Producer produce data\r\n");
+	  HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+	  HAL_Delay(100);
+	  osSemaphoreRelease(cSemFilledHandle);
+  }
+  /* USER CODE END FuncProducer */
+}
+
+/* USER CODE BEGIN Header_FuncConsumer */
+/**
+* @brief Function implementing the Consumer thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_FuncConsumer */
+void FuncConsumer(void const * argument)
+{
+  /* USER CODE BEGIN FuncConsumer */
+  char msg[30];
+  /* Infinite loop */
+  for(;;)
+  {
+	  osSemaphoreWait(cSemFilledHandle, osWaitForever);
+	  sprintf(msg, "Consumer consume data\r\n");
+	  HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+	  HAL_Delay(400);
+	  osSemaphoreRelease(cSemEmptyHandle);
+  }
+  /* USER CODE END FuncConsumer */
 }
 
 /**

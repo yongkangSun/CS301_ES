@@ -9,8 +9,11 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/subdir.mk
+-include Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3/subdir.mk
+-include Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/subdir.mk
+-include Middlewares/Third_Party/FreeRTOS/Source/subdir.mk
 -include Drivers/STM32F1xx_HAL_Driver/Src/subdir.mk
--include Drivers/CMSIS/Device/ST/STM32F1xx/Source/Templates/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/subdir.mk
 -include subdir.mk
@@ -65,8 +68,8 @@ all: main-build
 main-build: lab11.elf secondary-outputs
 
 # Tool invocations
-lab11.elf: $(OBJS) $(USER_OBJS) E:\onedrive\OneDrive\ -\ 南方科技大学\2021_Autumn\CS301--ES\lab\lab11\STM32F103RCTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "lab11.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"E:\onedrive\OneDrive - 南方科技大学\2021_Autumn\CS301--ES\lab\lab11\STM32F103RCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="lab11.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+lab11.elf: $(OBJS) $(USER_OBJS) E:\github_repository\CS301_ES\lab\lab11\STM32F103RCTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "lab11.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"E:\github_repository\CS301_ES\lab\lab11\STM32F103RCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="lab11.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
